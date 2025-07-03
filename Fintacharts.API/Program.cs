@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using System.Net.Mime;
 using System.Text.Json.Serialization;
 using Fintacharts.Application.Common.Interfaces;
+using Fintacharts.Infrastructure.Helper;
 using Serilog;
 
 namespace Fintacharts.API;
@@ -85,6 +86,7 @@ public class Program
         app.UseSwaggerUI();
         app.UseCors("AllowAny");
         app.UseHttpsRedirection();
+        app.ApplyMigration();
 
         app.UseAuthorization();
 

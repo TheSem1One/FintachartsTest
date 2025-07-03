@@ -1,0 +1,25 @@
+services:
+  fintacharts.api:
+    image: thesem1one/fintacharts:latest
+    container_name: fintacharts
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__ApiDatabase=Host=fintachartsdb;Database=fintacharts;Username=postgres;Password=admin
+    depends_on:
+          - fintachartsdb
+    build:
+      context: .
+      dockerfile: Fintacharts.API/Dockerfile
+    ports:
+        - "8001:8080"
+
+  fintachartsdb:
+    image: postgres:11
+    container_name: fintachartsdb
+    restart: always
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=admin
+        - POSTGRES_DB=fintacharts
+    ports:
+        - "9001:5432"

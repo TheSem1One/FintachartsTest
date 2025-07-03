@@ -1,4 +1,5 @@
-﻿using Fintacharts.Application.Common.Interfaces;
+﻿using Fintacharts.Application.Common.Exceptions;
+using Fintacharts.Application.Common.Interfaces;
 using Fintacharts.Application.DTO.Assets;
 using Fintacharts.Domain.Entity;
 using Fintacharts.Infrastructure.Persistence;
@@ -28,6 +29,7 @@ namespace Fintacharts.Infrastructure.Services
         public async Task<bool> DeleteAsset(int id)
         {
             var asset = await _dbContext.Assets.FindAsync(id);
+            if (asset is null) throw new EntityNotFoundException(id);
             _dbContext.Assets.Remove(asset);
             var result = await _dbContext.SaveChangesAsync();
             return result > 0;
