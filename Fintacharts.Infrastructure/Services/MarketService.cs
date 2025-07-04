@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using Fintacharts.Application.DTO.Market;
 using Fintacharts.Infrastructure.Options;
 using Fintacharts.Infrastructure.Persistence;
 
@@ -22,35 +23,32 @@ public class MarketService(IServiceScopeFactory scopeFactory,
 
         await ws.ConnectAsync(uri, CancellationToken.None);
 
-        var request = $@"{{
-      ""type"": ""l1-subscription"",
-      ""id"": ""{id}"",
-      ""instrumentId"": ""ad9e5345-4c3b-41fc-9437-1d253f62db52"",
-      ""provider"": ""simulation"",
-      ""subscribe"": true,
-      ""kinds"": [""bid""]
-    }}";
-
-        var bytesToSend = Encoding.UTF8.GetBytes(request);
+        var obj = new MarketRequestDto()
+        {
+            Id = id.ToString(),
+            InstrumentId = "ad9e5345-4c3b-41fc-9437-1d253f62db52",
+            Kinds = new List<string> { "bid" }
+        };
+        var request1 = JsonSerializer.Serialize(obj, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        });
+        var bytesToSend = Encoding.UTF8.GetBytes(request1);
         await ws.SendAsync(new ArraySegment<byte>(bytesToSend), WebSocketMessageType.Text, true, CancellationToken.None);
 
         var buffer = new byte[1024 * 4];
-        List<string> messages = new();
+        string? lastMessage = null;
 
         for (int i = 0; i < 4; i++)
         {
             var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            messages.Add(message);
+            lastMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
         }
-        var lastMessage = messages.LastOrDefault();
         var price = JsonSerializer.Deserialize<AssetPriceDto>(lastMessage, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         });
-        return price; 
-        
- 
-
+        return price;
     }
 }
